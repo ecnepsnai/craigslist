@@ -3,6 +3,7 @@ package craigslist
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/ecnepsnai/security"
 	"github.com/google/uuid"
@@ -25,7 +26,8 @@ type Posting struct {
 func (p Posting) ImageURLs() []string {
 	urls := make([]string, len(p.Images))
 	for i, id := range p.Images {
-		urls[i] = fmt.Sprintf("https://images.craigslist.org/%s_600x450.jpg", id)
+		path := strings.Split(id, ":")[1]
+		urls[i] = fmt.Sprintf("https://images.craigslist.org/%s_600x450.jpg", path)
 	}
 
 	return urls

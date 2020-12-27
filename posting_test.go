@@ -1,6 +1,7 @@
 package craigslist_test
 
 import (
+	"net/http"
 	"testing"
 
 	"github.com/ecnepsnai/craigslist"
@@ -20,5 +21,20 @@ func TestGetPostings(t *testing.T) {
 
 	if len(postings) == 0 {
 		t.Errorf("No posts returned :(")
+	}
+
+	if !testing.Short() {
+		for _, post := range postings {
+			if len(post.Images) == 0 {
+				continue
+			}
+
+			imageURL := post.ImageURLs()[0]
+			resp, _ := http.Get(imageURL)
+			if resp.StatusCode != 200 {
+				t.Errorf("HTTP %d for image URL", resp.StatusCode)
+			}
+			break
+		}
 	}
 }
