@@ -1,6 +1,8 @@
 package craigslist
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"net/http"
 	"strings"
 )
@@ -37,4 +39,10 @@ func urlParamsToURL(base string, params map[string]string) string {
 	url += strings.Join(paramsArr, "&")
 
 	return url
+}
+
+func randomString(length int) string {
+	randB := make([]byte, length)
+	rand.Read(randB)
+	return hex.EncodeToString(randB)
 }

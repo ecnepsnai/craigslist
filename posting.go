@@ -3,80 +3,43 @@ package craigslist
 import (
 	"encoding/json"
 	"fmt"
-	"strings"
 
-	"github.com/ecnepsnai/security"
 	"github.com/google/uuid"
 )
 
-// Posting describes a single craigslist post
+// Posting describes the structure for a single post
 type Posting struct {
-	CategoryAbbr string          `json:"categoryAbbr"`
-	CategoryID   string          `json:"categoryId"`
-	DedupeKey    string          `json:"dedupeKey"`
-	Images       []string        `json:"images"`
-	Location     PostingLocation `json:"location"`
-	PostedDate   int             `json:"postedDate"`
-	PostingID    int             `json:"postingId"`
-	Price        int             `json:"price"`
-	Title        string          `json:"title"`
+	PostedDate   int64              `json:"postedDate"`
+	SeeMyOther   int                `json:"seeMyOther"`
+	URL          string             `json:"url"`
+	Location     PostingLocation    `json:"location"`
+	CategoryID   int                `json:"categoryId"`
+	UpdatedDate  int64              `json:"updatedDate"`
+	Attributes   []PostingAttribute `json:"attributes"`
+	Category     string             `json:"category"`
+	Body         string             `json:"body"`
+	PostingID    int64              `json:"postingId"`
+	Section      string             `json:"section"`
+	CategoryAbbr string             `json:"categoryAbbr"`
+	Title        string             `json:"title"`
+	Images       []string           `json:"images"`
+	Price        int                `json:"price"`
 }
 
-// ImageURLs get an array of URLs that contain all images in this posting
-func (p Posting) ImageURLs() []string {
-	urls := make([]string, len(p.Images))
-	for i, id := range p.Images {
-		path := strings.Split(id, ":")[1]
-		urls[i] = fmt.Sprintf("https://images.craigslist.org/%s_600x450.jpg", path)
-	}
-
-	return urls
+// PostingAttribute describes the structure for a single attribute on a posting
+type PostingAttribute struct {
+	SpecialType string `json:"specialType"`
+	Label       string `json:"label"`
+	Value       string `json:"value"`
 }
 
-// PostingLocation describes the location for a craigslist post
-type PostingLocation struct {
-	AreaID      int     `json:"areaId"`
-	Hostname    string  `json:"hostname"`
-	Lat         float32 `json:"lat"`
-	Lon         float32 `json:"lon"`
-	SubareaAbbr string  `json:"subareaAbbr"`
-}
-
-type postingsResponseType struct {
-	Data struct {
-		Items []Posting `json:"items"`
-	} `json:"data"`
-}
-
-// LocationParams describes parameters for specifying the location for a craigslist query
-type LocationParams struct {
-	AreaID         int
-	Latitude       float32
-	Longitude      float32
-	SearchDistance int
-}
-
-// GetPostings will return an array of all postings for the given category. A query can be included to search for
-// postings matching a specific query.
-//
-// The category must be the 3-letter category code. See https://github.com/ecnepsnai/craigslist/blob/main/categories.md
-// for a list of all possible categories.
-// The query can be an empty string to list all recent posts for the category.
-// The location must is used to refine the craigslist search to your specific area, and is required
-func GetPostings(category string, query string, location LocationParams) ([]Posting, error) {
+// GetPosting get the full posting details for the given post.
+// It's recommended that you don't call this method directly, but rather call 'Posting()' on
+// a `craigslist.Result` object instead.
+func GetPosting(id int, categoryAbbr string, location PostingLocation) (*Posting, error) {
 	queryParams := map[string]string{
-		"area_id":         fmt.Sprintf("%d", location.AreaID),
-		"batchSize":       "100",
-		"lat":             fmt.Sprintf("%f", location.Latitude),
-		"lon":             fmt.Sprintf("%f", location.Longitude),
-		"search_distance": "30",
-		"startIndex":      "0",
-		"lang":            "en",
-		"cc":              "us",
-	}
-
-	if query != "" {
-		queryParams["query"] = query
+		"lang": "en",
+		"cc":   "us",
 	}
 
 	headers := map[string]string{
@@ -87,18 +50,29 @@ func GetPostings(category string, query string, location LocationParams) ([]Post
 		"x-ecl-areaid":     fmt.Sprintf("%d", location.AreaID),
 		"x-ecl-logid":      eclLogID,
 		"x-ecl-useragent":  eclUserAgent,
-		"x-ecl-devicename": security.RandomString(16),
+		"x-ecl-devicename": randomString(16),
 	}
 
-	response, err := httpGet("https://sapi.craigslist.org/v5/postings/"+category+"/search", queryParams, headers)
+	response, err := httpGet("https://api.craigslist.org/v6/postings/"+location.Hostname+"/"+location.SubareaAbbr+"/"+categoryAbbr+"/"+fmt.Sprintf("%d", id), queryParams, headers)
 	if err != nil {
 		return nil, err
 	}
 
-	reply := postingsResponseType{}
+	type postingResponseType struct {
+		Data struct {
+			Items []Posting `json:"items"`
+		} `json:"data"`
+	}
+
+	reply := postingResponseType{}
 	if err := json.NewDecoder(response.Body).Decode(&reply); err != nil {
 		return nil, err
 	}
 
-	return reply.Data.Items, nil
+	if len(reply.Data.Items) == 0 {
+		return nil, fmt.Errorf("no posting found")
+	}
+
+	post := reply.Data.Items[0]
+	return &post, nil
 }
