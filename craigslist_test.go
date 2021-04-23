@@ -7,8 +7,8 @@ import (
 )
 
 func TestSearchAndGet(t *testing.T) {
-	// Perform a search for 'vintage' in 'for sale - computers' in 'Vancouver BC'
-	results, err := craigslist.Search("sya", "vintage", craigslist.LocationParams{
+	// Perform a search for 'lenovo thinkpad' in 'for sale - computers' in 'Vancouver BC'
+	results, err := craigslist.Search("sya", "lenovo thinkpad", craigslist.LocationParams{
 		AreaID:         16,
 		Latitude:       49.2810,
 		Longitude:      -123.0400,
@@ -19,7 +19,7 @@ func TestSearchAndGet(t *testing.T) {
 	}
 
 	if len(results) == 0 {
-		t.Fatalf("Should return results")
+		t.Fatalf("Search should return results but did not")
 	}
 
 	// Get the details of the first result

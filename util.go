@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"net/http"
+	"net/url"
 	"strings"
 )
 
@@ -15,8 +16,8 @@ const (
 )
 
 func httpGet(baseURL string, queryParams map[string]string, headers map[string]string) (*http.Response, error) {
-	url := urlParamsToURL(baseURL, queryParams)
-	req, err := http.NewRequest("GET", url, nil)
+	clURL := urlParamsToURL(baseURL, queryParams)
+	req, err := http.NewRequest("GET", clURL, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -29,16 +30,15 @@ func httpGet(baseURL string, queryParams map[string]string, headers map[string]s
 }
 
 func urlParamsToURL(base string, params map[string]string) string {
-	url := base + "?"
+	clURL := base + "?"
 	paramsArr := make([]string, len(params))
 	i := 0
 	for key, value := range params {
-		paramsArr[i] = key + "=" + value
+		paramsArr[i] = key + "=" + url.PathEscape(value)
 		i++
 	}
-	url += strings.Join(paramsArr, "&")
-
-	return url
+	clURL += strings.Join(paramsArr, "&")
+	return clURL
 }
 
 func randomString(length int) string {
