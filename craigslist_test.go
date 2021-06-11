@@ -22,6 +22,20 @@ func TestSearchAndGet(t *testing.T) {
 		t.Fatalf("Search should return results but did not")
 	}
 
+	didAnyReturnImages := false
+	for _, r := range results {
+		urls := r.ImageURLs()
+		if len(urls) > 0 {
+			didAnyReturnImages = true
+			break
+		}
+	}
+	if !didAnyReturnImages {
+		// Note: this may TECHNICALLY fail if, by total chance, there's just a bunch of listings without pictures on
+		// them.
+		t.Errorf("No image URLs for any results")
+	}
+
 	// Get the details of the first result
 	posting, err := results[0].Posting()
 	if err != nil {

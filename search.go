@@ -79,20 +79,43 @@ func Search(category string, query string, location LocationParams) ([]Result, e
 		queryParams["query"] = query
 	}
 
-	headers := map[string]string{
-		"Accept":           "application/json",
-		"x-ecl-appname":    eclAppName,
-		"x-ecl-doorkey":    eclDoorKey,
-		"x-ecl-deviceid":   uuid.New().String(),
-		"x-ecl-areaid":     fmt.Sprintf("%d", location.AreaID),
-		"x-ecl-logid":      eclLogID,
-		"x-ecl-useragent":  eclUserAgent,
-		"x-ecl-devicename": randomString(16),
-	}
-
-	response, err := httpGet("https://sapi.craigslist.org/v5/postings/"+category+"/search", queryParams, headers)
+	cookie, err := getCookie()
 	if err != nil {
 		return nil, err
+	}
+	bearer, err := getBearer(location.AreaID)
+	if err != nil {
+		return nil, err
+	}
+
+	headers := map[string]string{
+		"Accept":                   "application/json",
+		"x-ecl-devicecountry":      "US",
+		"x-ecl-devicemanufacturer": "Apple",
+		"x-ecl-devicemodel":        "iPad Pro 12.9-inch (3rd generation)",
+		"x-ecl-systemname":         "iOS",
+		"x-ecl-appversion":         eclAppVersion,
+		"x-ecl-devicelocale":       "en",
+		"x-ecl-systemversion":      "14.6",
+		"x-ecl-devicebrand":        "Apple",
+		"x-ecl-appname":            eclAppName,
+		"x-ecl-doorkey":            eclDoorKey,
+		"x-ecl-deviceid":           uuid.New().String(),
+		"x-ecl-areaid":             fmt.Sprintf("%d", location.AreaID),
+		"x-ecl-logid":              eclLogID,
+		"x-ecl-useragent":          eclUserAgent,
+		"x-ecl-devicename":         randomString(16),
+		"User-Agent":               eclUserAgent,
+		"Cookie":                   cookie,
+		"Authorization":            "Bearer " + bearer,
+	}
+
+	response, err := httpGet("https://sapi.craigslist.org/v7/postings/"+category+"/search", queryParams, headers)
+	if err != nil {
+		return nil, err
+	}
+	if response.StatusCode != 200 {
+		return nil, fmt.Errorf("http %d", response.StatusCode)
 	}
 
 	type postingsResponseType struct {

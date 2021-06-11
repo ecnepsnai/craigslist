@@ -9,10 +9,11 @@ import (
 )
 
 const (
-	eclAppName   = "craigslist mobile app"
-	eclDoorKey   = "let me use the dev code to log in" // wtf??
-	eclUserAgent = "CLApp/1.12.0/iOS unknown"
-	eclLogID     = "6e8cfd5"
+	eclAppName    = "craigslist mobile app"
+	eclDoorKey    = "let me use the dev code to log in" // wtf??
+	eclUserAgent  = "CLApp/1.14.2/iOS unknown"
+	eclAppVersion = "1.14.2-20210412-152100-94d307e1"
+	eclLogID      = "2a1c34f"
 )
 
 func httpGet(baseURL string, queryParams map[string]string, headers map[string]string) (*http.Response, error) {

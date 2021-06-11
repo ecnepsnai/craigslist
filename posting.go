@@ -42,18 +42,38 @@ func GetPosting(id int, categoryAbbr string, location PostingLocation) (*Posting
 		"cc":   "us",
 	}
 
-	headers := map[string]string{
-		"Accept":           "application/json",
-		"x-ecl-appname":    eclAppName,
-		"x-ecl-doorkey":    eclDoorKey,
-		"x-ecl-deviceid":   uuid.New().String(),
-		"x-ecl-areaid":     fmt.Sprintf("%d", location.AreaID),
-		"x-ecl-logid":      eclLogID,
-		"x-ecl-useragent":  eclUserAgent,
-		"x-ecl-devicename": randomString(16),
+	cookie, err := getCookie()
+	if err != nil {
+		return nil, err
+	}
+	bearer, err := getBearer(location.AreaID)
+	if err != nil {
+		return nil, err
 	}
 
-	response, err := httpGet("https://api.craigslist.org/v6/postings/"+location.Hostname+"/"+location.SubareaAbbr+"/"+categoryAbbr+"/"+fmt.Sprintf("%d", id), queryParams, headers)
+	headers := map[string]string{
+		"Accept":                   "application/json",
+		"x-ecl-devicecountry":      "US",
+		"x-ecl-devicemanufacturer": "Apple",
+		"x-ecl-devicemodel":        "iPad Pro 12.9-inch (3rd generation)",
+		"x-ecl-systemname":         "iOS",
+		"x-ecl-appversion":         eclAppVersion,
+		"x-ecl-devicelocale":       "en",
+		"x-ecl-systemversion":      "14.6",
+		"x-ecl-devicebrand":        "Apple",
+		"x-ecl-appname":            eclAppName,
+		"x-ecl-doorkey":            eclDoorKey,
+		"x-ecl-deviceid":           uuid.New().String(),
+		"x-ecl-areaid":             fmt.Sprintf("%d", location.AreaID),
+		"x-ecl-logid":              eclLogID,
+		"x-ecl-useragent":          eclUserAgent,
+		"x-ecl-devicename":         randomString(16),
+		"User-Agent":               eclUserAgent,
+		"Cookie":                   cookie,
+		"Authorization":            "Bearer " + bearer,
+	}
+
+	response, err := httpGet("https://api.craigslist.org/v7/postings/"+location.Hostname+"/"+location.SubareaAbbr+"/"+categoryAbbr+"/"+fmt.Sprintf("%d", id), queryParams, headers)
 	if err != nil {
 		return nil, err
 	}
