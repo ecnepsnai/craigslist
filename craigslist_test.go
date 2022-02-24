@@ -1,6 +1,7 @@
 package craigslist_test
 
 import (
+	"net/http"
 	"testing"
 
 	"github.com/ecnepsnai/craigslist"
@@ -22,18 +23,25 @@ func TestSearchAndGet(t *testing.T) {
 		t.Fatalf("Search should return results but did not")
 	}
 
-	didAnyReturnImages := false
+	var imageURL string
 	for _, r := range results {
 		urls := r.ImageURLs()
 		if len(urls) > 0 {
-			didAnyReturnImages = true
+			imageURL = urls[0]
 			break
 		}
 	}
-	if !didAnyReturnImages {
+	if imageURL == "" {
 		// Note: this may TECHNICALLY fail if, by total chance, there's just a bunch of listings without pictures on
 		// them.
-		t.Errorf("No image URLs for any results")
+		t.Fatalf("No image URLs for any results")
+	}
+	resp, err := http.Get(imageURL)
+	if err != nil {
+		t.Fatalf("Error getting image URL: %s", err.Error())
+	}
+	if resp.StatusCode != 200 {
+		t.Fatalf("Error getting image URL: http %d", resp.StatusCode)
 	}
 
 	// Get the details of the first result
