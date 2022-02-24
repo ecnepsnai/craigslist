@@ -49,7 +49,7 @@ func getBearer(areaID int) (string, error) {
 	}
 
 	body := &bytes.Buffer{}
-	body.Write(getProviderCredHeaderValue())
+	body.Write(providerCredHeaderValue)
 	req, err := http.NewRequest("POST", "https://rapi.craigslist.org/v7/access-token", body)
 	if err != nil {
 		return "", err
