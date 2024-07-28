@@ -1,3 +1,9 @@
+> [!CAUTION]
+> This project and package are no longer maintained and likely do not work.
+
+<details>
+  <summary>Original readme</summary>
+
 # Craigslist
 
 [![Go Report Card](https://goreportcard.com/badge/github.com/ecnepsnai/craigslist?style=flat-square)](https://goreportcard.com/report/github.com/ecnepsnai/craigslist)
@@ -9,3 +15,5 @@ Package craigslist is an unofficial implementation of the Craigslist REST API us
 
 This library is for educational use only and is provided "as-is". This library is not associated with or endorsed by
 Craigslist.
+
+</details>
